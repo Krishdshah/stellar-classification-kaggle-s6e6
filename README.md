@@ -154,15 +154,15 @@ Below are the distributions of other key categorical attributes in the dataset:
 
 ### Base Feature Engineering:
 - Color indices representing astronomical spectral slopes:
-  $$u\_g = u - g$$
-  $$g\_r = g - r$$
-  $$r\_i = r - i$$
-  $$i\_z = i - z$$
+  - `u_g` = $u - g$
+  - `g_r` = $g - r$
+  - `r_i` = $r - i$
+  - `i_z` = $i - z$
 - Extended wide color index differentials:
-  $$ugri = u - i$$
-  $$griz = g - z$$
+  - `ugri` = $u - i$
+  - `griz` = $g - z$
 - Log transformation of redshift to normalize the skew:
-  $$\text{redshift\_log} = \log(1 + \text{redshift})$$
+  - `redshift_log` = $\log(1 + \text{redshift})$
 
 ---
 
@@ -186,7 +186,10 @@ Below are the distributions of other key categorical attributes in the dataset:
     $$y = \cos(\delta)\sin(\alpha)$$
     $$z = \sin(\delta)$$
   - **Magnitude Ratios:** Ratios of filter intensities to model color proportions:
-    $$u\_div\_g = \frac{u}{g}, \quad g\_div\_r = \frac{g}{r}, \quad \text{etc.}$$
+    - `u_div_g` = $\frac{u}{g}$
+    - `g_div_r` = $\frac{g}{r}$
+    - `r_div_i` = $\frac{r}{i}$
+    - `i_div_z` = $\frac{i}{z}$
   - **Polynomial Redshift:** Non-linear scaling terms `redshift_sq` ($z^2$) and `redshift_cube` ($z^3$).
 - **Model:** `XGBoostClassifier` on GPU.
 - **Public LB Score:** `0.95798` (largest single jump in performance)
@@ -212,12 +215,12 @@ Below are the distributions of other key categorical attributes in the dataset:
 **Purpose:** Add highly targeted interaction terms that map physical properties.
 - **Trigonometric Sky Features:** `sin_alpha`, `cos_alpha`, `sin_delta`, `cos_delta`.
 - **Redshift Interactions:** Multiplying redshift with wide-band indices:
-  $$\text{redshift\_griz} = \text{redshift} \times griz$$
-  $$\text{redshift\_ugri} = \text{redshift} \times ugri$$
-  $$\text{redshift\_u\_g} = \text{redshift} \times (u - g)$$
-  $$\text{redshift\_g\_r} = \text{redshift} \times (g - r)$$
-  $$\text{redshift\_r\_i} = \text{redshift} \times (r - i)$$
-  $$\text{redshift\_sq\_griz} = \text{redshift}^2 \times griz$$
+  - `redshift_griz` = $\text{redshift} \times \text{griz}$
+  - `redshift_ugri` = $\text{redshift} \times \text{ugri}$
+  - `redshift_u_g` = $\text{redshift} \times (u - g)$
+  - `redshift_g_r` = $\text{redshift} \times (g - r)$
+  - `redshift_r_i` = $\text{redshift} \times (r - i)$
+  - `redshift_sq_griz` = $\text{redshift}^2 \times \text{griz}$
 - **Coordinates & Redshift Interactions:** Interaction terms between coordinates and redshift (`alpha_delta`, `alpha_redshift`, `delta_redshift`).
 - **Redshift Quantiles:** Mapping objects into discrete bin intervals (`redshift_bin`).
 - **Model:** GPU-accelerated XGBoost.
