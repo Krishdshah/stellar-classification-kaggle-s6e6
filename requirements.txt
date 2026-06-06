@@ -1,0 +1,22 @@
+# Data manipulation and analysis
+numpy>=1.22.0
+pandas>=1.4.0
+
+# Machine Learning & Modeling
+scikit-learn>=1.0.0
+xgboost>=1.6.0
+lightgbm>=3.3.0
+catboost>=1.0.0
+optuna>=2.10.0
+
+# Plotting & Visualization
+matplotlib>=3.5.0
+seaborn>=0.11.0
+
+# Notebook Environment
+jupyter>=1.0.0
+ipykernel>=6.0.0
+
+# Utilities
+tqdm>=4.64.0
+joblib>=1.1.0
