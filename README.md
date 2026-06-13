@@ -14,16 +14,25 @@ This repository contains the complete pipeline, models, and exploratory research
 
 # Results & Leaderboard Progress
 
-Feature engineering was the primary driver of performance in this competition. The table below outlines our leaderboard progression:
+Feature engineering and validation scaling were the primary drivers of performance in this competition. The table below outlines our leaderboard progression across all experiment phases:
 
-| Experiment | Public Score | Key Adjustments |
-| :--- | :---: | :--- |
-| **CatBoost GPU Baseline** | 0.95304 | Baseline features + standard color indices. |
-| **XGBoost GPU + Advanced Features** | 0.95798 | Added sky coordinates, mag ratios, polynomial redshift. |
-| **CatBoost/XGBoost Ensemble** | 0.95726 | Weighted blending of baseline probability models. |
-| **Optuna XGBoost** | 0.95627 | Hyperparameter tuning on baseline features. |
-| **XGBoost Feature Engineering V2** | **0.95904** | **Trig sky coordinates, redshift-to-band interactions (Best Model).** |
-| **XGBoost Feature Engineering V3** | 0.95875 | Higher-order redshift polynomials and interaction terms. |
+| Experiment | Validation (CV) Score | Public LB Score | Key Adjustments & Hyperparameters |
+| :--- | :---: | :---: | :--- |
+| **CatBoost GPU Baseline** | 0.952326 (5-Fold) | 0.95304 | Baseline features + standard color indices. |
+| **XGBoost GPU + Advanced Features** | 0.957325 (5-Fold) | 0.95798 | Added sky coordinates, mag ratios, polynomial redshift. |
+| **CatBoost/XGBoost Ensemble** | N/A | 0.95726 | Weighted blending of baseline probability models. |
+| **Optuna XGBoost** | 0.953409 (5-Fold) | 0.95627 | Hyperparameter tuning on baseline features. |
+| **XGBoost Feature Engineering V2** | 0.958038 (5-Fold) | 0.95904 | Trig sky coordinates, redshift-to-band interactions. |
+| **XGBoost Feature Engineering V3** | 0.958092 (5-Fold) | 0.95875 | Higher-order redshift polynomials and interaction terms. |
+| **XGBoost Model A** (08a) | 0.958038 (5-Fold) | 0.95904 | `max_depth=6`, `lr=0.05`, `n_est=2500` (V2 feature baseline) |
+| **XGBoost Model B** (08b) | 0.958041 (5-Fold) | 0.95879 | Same as Model A (differs due to GPU non-determinism). |
+| **XGBoost Model C** (08c) | 0.957964 (5-Fold) | **0.95913** | **`max_depth=10`, `lr=0.02`, `n_est=2500` (Best Public Score).** |
+| **XGBoost Model D** (08d) | 0.957999 (5-Fold) | 0.95904 | `max_depth=8`, `lr=0.03`, `n_est=2500`, `seed=2025` |
+| **XGBoost Model E** | 0.957890 (25-Fold) | 0.95862 | `max_depth=10`, `lr=0.02`, `n_est=3000` (25-Fold Stratified CV) |
+| **XGBoost Model F** (08f) | 0.957887 (30-Fold) | 0.95864 | `max_depth=10`, `lr=0.015`, `n_est=4000` (30-Fold Stratified CV) |
+| **XGBoost Pseudo-Labeling (Model 1)** | N/A | 0.95876 | Retrained model on high-confidence pseudo-labeled test rows. |
+| **XGBoost Pseudo-Labeling (Model 2, v1)** | N/A | 0.95833 | Alternate pseudo-label iteration. |
+| **XGBoost Pseudo-Labeling (Model 2, v2)** | N/A | 0.95889 | High-confidence augmented training with optimized threshold. |
 
 ---
 
@@ -49,7 +58,13 @@ stellar-classification-kaggle-s6e6/
 │   ├── 04_ensemble_submission.ipynb    # Probability-based soft blending script combining different GBDT models
 │   ├── 05_optuna_xgboost.ipynb         # Parameter optimization script using Optuna to tune model parameters
 │   ├── 06_xgb_feature_engineering_v2.ipynb # Advanced redshift-to-filter interaction feature generation (Best LB Score)
-│   └── 07_xgb_redshift_interactions_v3.ipynb # Explores higher-order interactions and polynomials for redshift features
+│   ├── 07_xgb_redshift_interactions_v3.ipynb # Explores higher-order interactions and polynomials for redshift features
+│   ├── 08a_xgb_feature_engineering_v2.ipynb # XGBoost experiment A (max_depth=6, lr=0.05)
+│   ├── 08b_xgb_feature_engineering_v2.ipynb # XGBoost experiment B (same as A, GPU non-determinism test)
+│   ├── 08c_xgb_feature_engineering_v2.ipynb # XGBoost experiment C (max_depth=10, lr=0.02, best LB score)
+│   ├── 08d_xgb_feature_engineering_v2.ipynb # XGBoost experiment D (max_depth=8, lr=0.03, random_state=2025)
+│   ├── 08f_xgb_feature_engineering_v2.ipynb # XGBoost experiment F (max_depth=10, lr=0.015, 30-Fold CV)
+│   └── xgb_pseudo2.ipynb               # XGBoost with pseudo-labeling augmentation pipeline
 │
 ├── outputs/                            # Target destination for all trained models, logs, probabilities, and CSV submissions
 │   ├── .gitkeep                        # Empty tracking file
@@ -59,14 +74,49 @@ stellar-classification-kaggle-s6e6/
 │   │   ├── feature_importance.csv      # Output list of CatBoost feature importance values
 │   │   └── submission_catboost.csv     # Target submission prediction CSV file
 │   ├── eda_output/                     # Intermediate tabular data produced by the EDA/feature engineering script
-│   │   ├── eda_report.csv              # Summary statistical overview of dataset variables
 │   │   ├── train_fe.csv                # Engineered training set variables
 │   │   └── test_fe.csv                 # Engineered test set variables
 │   ├── ensemble/                       # Ensemble blended submission files
 │   │   ├── submission_ensemble_30_70.csv # Prediction blending with 30% CatBoost and 70% XGBoost weight
 │   │   ├── submission_ensemble_40_60.csv # Prediction blending with 40% CatBoost and 60% XGBoost weight
 │   │   └── submission_ensemble_50_50.csv # Prediction blending with equal weights
-│   ├── xgb_fe/                         # Outputs for XGBoost V2 model (Best Model)
+│   ├── xgb_a/                          # Outputs for XGBoost Model A
+│   │   ├── submission_xgb_a.csv        # Submission predictions CSV file
+│   │   ├── xgb_a_cv_scores.csv         # 5-fold cross validation score summary
+│   │   ├── xgb_a_cv_summary.csv        # Summary of cross-validation results
+│   │   ├── xgb_a_importance.csv        # Feature importance listings
+│   │   └── xgb_a_prob.csv              # Out-of-fold probability predictions
+│   ├── xgb_b/                          # Outputs for XGBoost Model B
+│   │   ├── submission_xgb_b.csv        # Submission predictions CSV file
+│   │   ├── xgb_b_cv_scores.csv         # 5-fold cross validation score summary
+│   │   ├── xgb_b_cv_summary.csv        # Summary of cross-validation results
+│   │   ├── xgb_b_importance.csv        # Feature importance listings
+│   │   └── xgb_b_prob.csv              # Out-of-fold probability predictions
+│   ├── xgb_c/                          # Outputs for XGBoost Model C
+│   │   ├── submission_xgb_c.csv        # Submission predictions CSV file
+│   │   ├── xgb_c_cv_scores.csv         # 5-fold cross validation score summary
+│   │   ├── xgb_c_cv_summary.csv        # Summary of cross-validation results
+│   │   ├── xgb_c_importance.csv        # Feature importance listings
+│   │   └── xgb_c_prob.csv              # Out-of-fold probability predictions
+│   ├── xgb_d/                          # Outputs for XGBoost Model D
+│   │   ├── submission_xgb_d.csv        # Submission predictions CSV file
+│   │   ├── xgb_d_cv_scores.csv         # 5-fold cross validation score summary
+│   │   ├── xgb_d_cv_summary.csv        # Summary of cross-validation results
+│   │   ├── xgb_d_importance.csv        # Feature importance listings
+│   │   └── xgb_d_prob.csv              # Out-of-fold probability predictions
+│   ├── xgb_e/                          # Outputs for XGBoost Model E (25-Fold CV)
+│   │   ├── submission_xgb_e.csv        # Submission predictions CSV file
+│   │   ├── xgb_e_cv_scores.csv         # 25-fold cross validation score summary
+│   │   ├── xgb_e_cv_summary.csv        # Summary of cross-validation results
+│   │   ├── xgb_e_importance.csv        # Feature importance listings
+│   │   └── xgb_e_prob.csv              # Out-of-fold probability predictions
+│   ├── xgb_f/                          # Outputs for XGBoost Model F (30-Fold CV)
+│   │   ├── submission_xgb_f.csv        # Submission predictions CSV file
+│   │   ├── xgb_f_cv_scores.csv         # 30-fold cross validation score summary
+│   │   ├── xgb_f_cv_summary.csv        # Summary of cross-validation results
+│   │   ├── xgb_f_importance.csv        # Feature importance listings
+│   │   └── xgb_f_prob.csv              # Out-of-fold probability predictions
+│   ├── xgb_fe/                         # Outputs for XGBoost V2 model (Base model for 08a-f)
 │   │   ├── submission_xgb_fe_v2.csv    # Final best submission predictions
 │   │   ├── xgb_fe_v2_cv_scores.csv     # 5-fold cross validation score summary for V2 model
 │   │   ├── xgb_fe_v2_importance.csv    # Feature importance listings for V2 model
@@ -81,6 +131,13 @@ stellar-classification-kaggle-s6e6/
 │   │   ├── optuna_trials.csv           # Full logs showing scores across trial iterations
 │   │   ├── submission_xgb_optuna.csv   # Predictions CSV using the best parameters
 │   │   └── xgb_optuna_prob.csv         # Out-Of-Fold predictions for the tuned model
+│   ├── xgb_pseudo/                     # Outputs for XGBoost Pseudo-labeling runs
+│   │   ├── submission_xgb_pseudo.csv    # Pseudo Model 1 submission predictions
+│   │   ├── submission_xgb_pseudo_v1.csv # Pseudo Model 2 (run 1) submission predictions
+│   │   ├── submission_xgb_pseudo_v2.csv # Pseudo Model 2 (run 2) submission predictions
+│   │   ├── xgb_pseudo_prob.csv          # Prediction probabilities for Pseudo Model 1
+│   │   ├── xgb_pseudo_prob_v1.csv       # Prediction probabilities for Pseudo Model 2 (run 1)
+│   │   └── xgb_pseudo_prob_v2.csv       # Prediction probabilities for Pseudo Model 2 (run 2)
 │   └── xgboost/                        # Outputs for baseline XGBoost model
 │       ├── submission_xgb.csv          # Predictions using baseline XGBoost
 │       ├── xgb_cv_scores.csv           # 5-fold cross validation score summary
@@ -233,6 +290,59 @@ Below are the distributions of other key categorical attributes in the dataset:
 - **Added Features:** `redshift_fourth`, `redshift_cube_griz`, `redshift_cube_ugri`, `redshift_log_griz`, `redshift_log_ugri`.
 - **Public LB Score:** `0.95875`
 - **Finding:** Over-engineering features resulted in overfitting to training cross-validation sets, leading to a minor drop in public leaderboard performance.
+
+---
+
+## Notebooks 08a & 08b: XGBoost Feature Engineering V2 Optimization
+**Purpose:** Investigate model robustness and GPU non-determinism under `max_depth=6`, `learning_rate=0.05` and `n_estimators=2500` on V2 engineered features.
+- **Validation (CV) Setup:** 5-Fold Stratified CV.
+- **Mean CV Scores:** `0.958038` (Model A) vs `0.958041` (Model B).
+- **Public LB Scores:** `0.95904` (Model A) vs `0.95879` (Model B).
+- **Finding:** Running the exact same configuration on GPU twice resulted in slightly different test predictions and leaderboard scores due to parallel reduction ordering differences in XGBoost's `hist` tree method, although CV scores remained nearly identical.
+
+---
+
+## Notebook 08c: Deep Tree Exploration (Best Model)
+**Purpose:** Test the boundaries of tree depth by increasing `max_depth` to 10 and reducing the learning rate to `0.02`.
+- **Validation (CV) Setup:** 5-Fold Stratified CV.
+- **Mean CV Score:** `0.957964`
+- **Public LB Score:** **`0.95913` (Best Individual Model)**
+- **Finding:** Deeper trees were able to capture complex high-order feature interactions generated in V2, successfully yielding the best public score without overfitting.
+
+---
+
+## Notebook 08d: Intermediate Tree Depth
+**Purpose:** Explore tree depth of 8 and a learning rate of `0.03` with a different random state (`2025`).
+- **Validation (CV) Setup:** 5-Fold Stratified CV.
+- **Mean CV Score:** `0.957999`
+- **Public LB Score:** `0.95904`
+- **Finding:** Replicable performance with a slightly different hyperparameter trade-off, showing the robustness of the Feature Engineering V2 schema.
+
+---
+
+## Notebook 08f: High-Fold Cross-Validation Scaling
+**Purpose:** Scale the cross-validation setup to a massive 30-Fold Stratified CV with a slower learning rate of `0.015`, deeper tree depth of 10, and `n_estimators=4000`.
+- **Validation (CV) Setup:** 30-Fold Stratified CV.
+- **Mean CV Score:** `0.957887`
+- **Public LB Score:** `0.95864`
+- **Finding:** Running 30 folds significantly reduced validation variance, resulting in a very robust mean CV score. However, the slightly lower public LB score suggested that the extremely large fold ensemble might slightly underfit the specific public test distribution compared to 5-fold models.
+
+---
+
+## Notebook xgb_pseudo2: Pseudo-Labeling Augmentation
+**Purpose:** Leverage semi-supervised learning by training a strong initial classifier, predicting on the test set, and adding test predictions with confidence $> 0.9995$ back into the training set as pseudo-labels.
+- **Validation Setup:** Retrained directly on the augmented dataset (original training data + pseudo-labeled test data).
+- **Public LB Scores:**
+  - **Pseudo Model 1:** `0.95876`
+  - **Pseudo Model 2 (Run 1):** `0.95833`
+  - **Pseudo Model 2 (Run 2):** `0.95889`
+- **Process:**
+  1. Train initial model on `train_fe.csv` with `max_depth=10`, `learning_rate=0.02`, `n_estimators=2500`.
+  2. Predict probabilities on `test_fe.csv`.
+  3. Filter test samples with maximum class probability $> 0.9995$ (resulting in 123,564 high-confidence pseudo-labeled rows).
+  4. Concatenate original training data with the pseudo-labeled test data, increasing the training size to 700,911 samples.
+  5. Retrain a final model with `n_estimators=3000`.
+- **Finding:** Pseudo-labeling yielded highly stable models. The best run (v2) achieved a Public LB score of `0.95889`, validating the capability of semi-supervised learning to self-correct and refine decision boundaries on unlabeled test data.
 
 ---
 
