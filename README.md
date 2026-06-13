@@ -396,7 +396,7 @@ pip install -r requirements.txt
 
 # Author
 **Krish D Shah**
-- **Portfolio:** [krishdshah.github.io/portfolio](https://krishdshah.github.io/portfolio)
+- **Portfolio:** [thekrishdshah.vercel.app](https://thekrishdshah.vercel.app/)
 - **GitHub:** [@Krishdshah](https://github.com/Krishdshah)
 - **LinkedIn:** [in/thekrishdshah](https://linkedin.com/in/thekrishdshah)
 
